@@ -11,16 +11,14 @@ function burstdetguifunc(src,~,job,varargin)
 % to do (new):
 % - ap and ds in head vs. 'local' ap and ds not very satisfactory
 % - the whole concept of addressing separate units per channel (=cells of
-% bu.etsl) is error-prone
-%  as it is implemented now, e.g. if the number of units per channel
-%  changes from file to file (of a given experiment). The code dealing with
-%  separate units is for now left in place because there may be times ahead
-%  in which we need to be able to do this. In this case, threshdetgui will
-%  have to change, too
+% bu.etsl) is error-prone as it is implemented now, e.g. if the number of
+% units per channel changes from file to file (of a given experiment). The
+% code dealing with separate units is for now left in place because there
+% may be times ahead in which we need to be able to do this. In this case,
+% threshdetgui will have to change, too
 % - also, different units of a channel might as well be elements of a
 % struct bu, so bu(2).etsl instead of bu.etsl{2}
 % - different mode of determining burst start: convolution + threshold? 
-
 
 % We need some global data:
 %   evt.tsl=cell array of time stamp lists of single 'events' 
@@ -83,12 +81,13 @@ while ~done
       ap.minPreBurstSilentPerLen=2000;
       % maximum number of events allowed in silent period
       ap.maxPreBurstSilentPerNEv=1;
+
+      % *** the following parameters are currently inactivated in
+      % burstdet_optgui and must not be criteria in burst detection *** 
+
       % length (ms) beyond which a burst will be regarded a 'freak' event
       % (but will still enter all statistics)
       ap.maxNormalBurstLength=inf;
-
-      % *** the following parameter is currently inactivated in
-      % burstdet_optgui and must not be a criterion in burst detection *** 
       % minimally acceptable duration of bursts
       ap.minBurstLen=inf;
       % --------------------------------------
@@ -200,8 +199,8 @@ while ~done
       % ..and set their 'string' properties to the values of the
       % matching fields of ap or wp
       for g=1:length(uicFn)
-        structIx=[~isempty(strmatch(uicFn{g},apFn,'exact')),...
-          ~isempty(strmatch(uicFn{g},wpFn,'exact'))];
+        structIx=[any(strcmp(uicFn{g},apFn)),...
+          any(strcmp(uicFn{g},wpFn))];
         if length(find(structIx))==1
           eval(['cType=get(handles.' uicFn{g} ',''style'');']);
           switch cType
@@ -238,8 +237,8 @@ while ~done
       wpFn=fieldnames(wp);
       structName={'ap','wp'};
       for g=1:length(uicFn)
-        structIx=[~isempty(strmatch(uicFn{g},apFn,'exact')),...
-          ~isempty(strmatch(uicFn{g},wpFn,'exact'))];
+        structIx=[any(strcmp(uicFn{g},apFn)),...
+          any(strcmp(uicFn{g},wpFn))];
         if length(find(structIx))==1
           eval(['cType=get(handles.' uicFn{g} ',''style'');']);
           switch cType
@@ -391,7 +390,7 @@ while ~done
         % one as default selection
         if wp.tslNUnit>1
           if ~isempty(wp.tslUnitName)
-            wp.tslUnitInd=picklistitem(unitNames,'defaultVal',strmatch(wp.tslUnitName,unitNames));
+            wp.tslUnitInd=picklistitem(unitNames,'defaultVal',find(strcmp(wp.tslUnitName,unitNames)));
           else
             wp.tslUnitInd=picklistitem(unitNames);            
           end
@@ -563,21 +562,6 @@ while ~done
         end
         
         % ----- display a few basic parameters:
-        % - burst rate
-        bRate=nTs/diff(ds.fileInfo.recTime);
-        % - burst length (mean+-std)
-        bLenMn=mean(bu.etsl(:,etslc.durCol));
-        bLenStd=std(bu.etsl(:,etslc.durCol));
-        % relative time spent in in bursts: estimate below is the 
-        % lower bound because active periods at the end of recording was kicked
-        % out from the list
-        bRelTime=sum(bu.etsl(:,etslc.durCol)/1000)/diff(ds.fileInfo.recTime);
-        % - length of silent states (mean+-std)
-        sLenMn=mean(bu.silentEtsl(:,etslc.durCol));
-        sLenStd=std(bu.silentEtsl(:,etslc.durCol));
-        % relative time spent in inactive state need not be computed -
-        % it's 1-the above
-        % display of results..
         subplot(sp.info.axH),
         txt={...
             ['eff. rec time: ' num2str(bu.stats.recTime/1000,'%1.2f')],...
