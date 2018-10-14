@@ -1,6 +1,6 @@
-function burstdetGUIfunc(src,eventdata,job,varargin)
-% ** function burstdetGUIfunc(src,eventdata,job,varargin)
-% Collection of callback routines for burstdetGUI.m
+function burstdetguifunc(src,~,job,varargin)
+% ** function burstdetguifunc(src,eventdata,job,varargin)
+% Collection of callback routines for burstdetgui.m
 %                         >>> INPUT VARIABLES >>>
 %
 % NAME              TYPE/DEFAULT          DESCRIPTION
@@ -99,9 +99,13 @@ while ~done
       wp.tslUnitName=['U' int2str(wp.tslUnitInd)];
 
       % ~~~~~~~ display options & matlab version section
-      % which version of matlab?
+      % which version of Matlab?
       wp.mver=ver;
-      wp.mver=str2double(wp.mver(strmatch('matlab',lower({wp.mver.Name}),'exact')).Version);
+      % note that in standalone deployed code function ver may produce
+      % several entries with .Name equal to 'Matlab', so we have to opt for
+      % one
+      tmpIx=find(strcmpi('matlab',{wp.mver.Name}),1);
+      wp.mver=str2double(wp.mver(tmpIx).Version);
       % standard background color of subplots in main figure window
       wp.stdAxCol=[.8 .8 1];
       % time interval covered per line in raster plot, s
@@ -165,21 +169,14 @@ while ~done
       tmpyl=get(gca,'ylim');
       tmpxl=get(gca,'xlim');
       sp.tslExc.patchH=patch(tmpxl([1 1 2 2])',tmpyl([1 2 2 1])',wp.stdAxCol);
-
       % -- info
       set(sp.info.axH,'color',[.9 .9 .9],'box','on','xtick',[],'ytick',[]);
-      
       % -- iei
       set(sp.iei.axH,'color',wp.stdAxCol);
       % vertical line representing maxIEI_tail
       wp.maxIEI_tailLH=nan;
-
-      % -- raw excerpt
-      set(sp.rawExc.axH,'color',wp.stdAxCol,'xtick',[],'ytick',[]);
-
       % -- peth
       set(sp.peth.axH,'color',wp.stdAxCol);
-      
       job(1)=[];
       
     case 'optionsDialogAlert'
@@ -359,7 +356,6 @@ while ~done
       % wipe plots
       cla(sp.tslOv.axH);
       cla(sp.iei.axH);
-      cla(sp.rawExc.axH);
       cla(sp.info.axH);
       cla(sp.tslExc.axH);
       cla(sp.peth.axH);
@@ -431,9 +427,9 @@ while ~done
     case  'plotOv'
       if ~isempty(evt.tsl)
         subplot(sp.tslOv.axH), cla, hold on
-        [lh,evtCo]=rasterplot(evt.tsl,'xIntv',wp.OvPlotTAx);
+        rasterplot(evt.tsl,'xIntv',wp.OvPlotTAx);
         axis on; set(gca,'ytick',[]);
-        th=title([ds.dataFn ', ' wp.tslUnitName],'color','b','fontsize',10,'fontweight','bold','interpreter','none');
+        title([ds.dataFn ', ' wp.tslUnitName],'color','b','fontsize',10,'fontweight','bold','interpreter','none');
         % re-create dummy patch
         tmpyl=get(gca,'ylim');
         tmpxl=get(gca,'xlim');
@@ -444,7 +440,6 @@ while ~done
       job(1)=[];
       
     case 'detBurst'
-      cla(sp.rawExc.axH)
       % etsl must be emptied because it may exist from former session
       bu.etsl=[];
       bu.silentEtsl=[];
@@ -477,7 +472,8 @@ while ~done
         'maxIEI_init',ap.maxIEI_init,...
         'minNEvPerBurst',ap.minNEvPerBurst,...
         'minSilentPerDur',ap.minPreBurstSilentPerLen,...
-        'maxSilentPerNEv',ap.maxPreBurstSilentPerNEv);
+        'maxSilentPerNEv',ap.maxPreBurstSilentPerNEv,...
+        'startTs','iei');
       % tag 'freak bursts'
       bu.etsl(bu.etsl(:,etslc.durCol)>ap.maxNormalBurstLength,etslc.tagCol)=wp.isFreakBurst;
       if ~isempty(evt.tsl)
@@ -505,7 +501,10 @@ while ~done
         % wanted to plot them
         tmpStopTs=sum(bu.etsl(:,[etslc.tsCol etslc.durCol]),2);
         [~,buStartXY]=rasterplot(bu.etsl(:,etslc.tsCol),'xIntv',wp.OvPlotTAx,'plotType','none');        
-        [~,buStopXY]=rasterplot(tmpStopTs,'xIntv',wp.OvPlotTAx,'plotType','none');        
+        [~,buStopXY]=rasterplot(tmpStopTs,'xIntv',wp.OvPlotTAx,'plotType','none');
+        % add negative offset to y coordinates
+        buStartXY(:,2) = buStartXY(:,2) - 0.5;
+        buStopXY(:,2) = buStopXY(:,2) - 0.5;
         % plot the burst start times by single markers so very short burst
         % can readily be identified (this must be done before the
         % corrections below)
@@ -555,7 +554,7 @@ while ~done
         % etsl so the callback boils down to indexing etsl (essentially)
         tmp=cumsum(buYDiff+1);
         for lix=1:length(sp.tslOv.burstLh)
-          tmpIx=min(find(tmp>=lix));
+          tmpIx=find(tmp>=lix, 1);
           set(sp.tslOv.burstLh(lix),'userdata',tmpIx,'ButtonDownFcn',{@burstpick,bu.etsl,head});
           % change color of freak bursts
           if bu.etsl(tmpIx,etslc.tagCol)==wp.isFreakBurst
@@ -606,8 +605,7 @@ while ~done
         % line for iei thresh
         wp.maxIEI_tailLH=line(ap.maxIEI_tail*[1 1],get(gca,'ylim'),'color','r','linewidth',2,'linestyle','--');
         ylabel('sqrt(N)')
-        % sorry, no space for that
-        % xlabel('inter-event-interval (ms)');
+        xlabel('inter-event-interval (ms)');
       end
       job(1)=[];
       
@@ -621,7 +619,7 @@ while ~done
         % set axis limits and plot peth
         subplot(sp.peth.axH), cla, hold on
         set(gca,'xlim',wp.pethBin([1 end]));
-        ph=bar(wp.pethBin,mean(peth,2),1.0,'k');
+        bar(wp.pethBin,mean(peth,2),1.0,'k');
         xlabel('peri-burst time (ms)');
       end
       job(1)=[];
@@ -629,35 +627,11 @@ while ~done
     case  'plotBurstAligned'
       % --- bursts, aligned & peth
       nTs=size(bu.etsl,1);
-      if nTs>0
-        % -- transform data for aligned raster plot
-        x=[];
-        y=[];
-        freakX=[];
-        freakY=[];        
-        for g=1:nTs
-          tmpTsl=(evt.tsl-bu.etsl(g,etslc.tsCol))';
-          tmpX=tmpTsl(tmpTsl>=wp.pethInterval(1) & tmpTsl<=wp.pethInterval(2));
-          x=cat(2,x,tmpX);
-          y=cat(2,y,repmat(g,size(tmpX)));
-          if bu.etsl(g,etslc.tagCol)==wp.isFreakBurst
-            freakX=cat(2,freakX,tmpX);
-            freakY=cat(2,freakY,repmat(g,size(tmpX)));
-          end
-        end
-        x=[x;x];
-        y=[y-.35;y+.35];
-        % -- plot ts and embellish
+      if nTs
         subplot(sp.tslExc.axH), cla, hold on
-        line(x,y,'color','k','linewidth',1);
-        if ~isempty(freakX)
-          freakX=[freakX;freakX];
-          freakY=[freakY-.35;freakY+.35];
-          line(freakX,freakY,'color',wp.freakBurstCol,'linewidth',1);
-        end
-        set(gca,'xlim',wp.pethBin([1 end]));
-        set(gca,'ylim',[.5 nTs+.5],'ydir','reverse','ytick',0:5:nTs);
-        xlabel('peri-burst time (ms)');
+        rasterplot(evt.tsl,'xIntv',wp.pethInterval/1000,'etsl',bu.etsl);
+        axis tight
+        set(gca,'xlim',wp.pethBin([1 end]), 'ytick',[]);
       end
       job(1)=[];
       
@@ -675,10 +649,10 @@ while ~done
           'silentper_dur',ap.minPreBurstSilentPerLen,...
           'silentper_maxev',ap.maxPreBurstSilentPerNEv,...
           'comment',['generated by ' mfilename]);
-      catch
+      catch ME
         warndlg({'Writing of atsl failed, possibly because the *.mat file loaded for burst analysis does not contain sufficient information about the recording (old version of threshdetgui).',...
           'Here is the explicit error message: ',...
-          lasterr});
+          ME.message});
       end
       % save result by default as cell array because there may be several
       % units per channel

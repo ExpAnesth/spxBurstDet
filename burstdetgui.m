@@ -123,7 +123,7 @@ h1 = uicontrol('Parent',H0, ...
 % identified (plots need larger margins because of axes labels).
 % From top to bottom, left to right:
 % - overview tsl
-sp.tslOv.axH=subplot('position',[la2  0.32+1.5*smarg  la4-la2-smarg  0.68-3*smarg]);
+sp.tslOv.axH=subplot('position',[la2  0.25+1.5*smarg  la4-la2-smarg  0.75-3*smarg]);
 set(sp.tslOv.axH,'tag','tslOverview','NextPlot','add');
 % - aligned bursts
 sp.tslExc.axH=subplot('position',[la4  0.25+1.5*smarg  1-la4-smarg  0.75-3*smarg]);
@@ -132,13 +132,10 @@ set(sp.tslExc.axH,'tag','tslExcerpt');
 sp.info.axH=subplot('position',[la1  1.5*smarg  butt2x  0.3-1.5*smarg]);
 set(sp.info.axH,'tag','info');
 % - iei
-sp.iei.axH=subplot('position',[la2  0.16+1.5*smarg  la4-la2-smarg  0.16-1.5*smarg]);
+sp.iei.axH=subplot('position',[la2  0.02+1.5*smarg  la4-la2-smarg  0.23-1.5*smarg]);
 set(sp.iei.axH,'tag','iei');
-% - raw excerpts
-sp.rawExc.axH=subplot('position',[la2  1.5*smarg  la4-la2-smarg  0.16-1.5*smarg]);
-set(sp.rawExc.axH,'tag','rawExc');
 % - peth
-sp.peth.axH=subplot('position',[la4  1.5*smarg  1-la4-smarg  0.25-1.5*smarg]);
+sp.peth.axH=subplot('position',[la4  0.02+1.5*smarg  1-la4-smarg  0.23-1.5*smarg]);
 set(sp.peth.axH,'tag','peth');
 
 burstdetguifunc(H0,[],{'init','openOptionsDialog'},'sp',sp);
