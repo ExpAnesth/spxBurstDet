@@ -174,6 +174,9 @@ while ~done
       set(sp.iei.axH,'color',wp.stdAxCol);
       % vertical line representing maxIEI_tail
       wp.maxIEI_tailLH=nan;
+      % -- raw excerpt
+      set(sp.rawExc.axH,'color',wp.stdAxCol,'xtick',[],'ytick',[]);
+
       % -- peth
       set(sp.peth.axH,'color',wp.stdAxCol);
       job(1)=[];
@@ -355,6 +358,7 @@ while ~done
       % wipe plots
       cla(sp.tslOv.axH);
       cla(sp.iei.axH);
+      cla(sp.rawExc.axH);
       cla(sp.info.axH);
       cla(sp.tslExc.axH);
       cla(sp.peth.axH);
@@ -439,6 +443,7 @@ while ~done
       job(1)=[];
       
     case 'detBurst'
+      cla(sp.rawExc.axH)
       % etsl must be emptied because it may exist from former session
       bu.etsl=[];
       bu.silentEtsl=[];
