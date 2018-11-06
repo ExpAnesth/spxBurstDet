@@ -129,16 +129,16 @@ set(sp.tslOv.axH,'tag','tslOverview','NextPlot','add');
 sp.tslExc.axH=subplot('position',[la4  0.25+1.5*smarg  1-la4-smarg  0.75-3*smarg]);
 set(sp.tslExc.axH,'tag','tslExcerpt');
 % - info window
-sp.info.axH=subplot('position',[la1  1.5*smarg  butt2x  0.3-1.5*smarg]);
+sp.info.axH=subplot('position',[la1  2.0*smarg  butt2x  0.3-2.0*smarg]);
 set(sp.info.axH,'tag','info');
 % - iei
 sp.iei.axH=subplot('position',[la2  0.16+1.5*smarg  la4-la2-smarg  0.16-1.5*smarg]);
 set(sp.iei.axH,'tag','iei');
 % - raw excerpts
-sp.rawExc.axH=subplot('position',[la2  1.5*smarg  la4-la2-smarg  0.16-1.5*smarg]);
+sp.rawExc.axH=subplot('position',[la2  2.0*smarg  la4-la2-smarg  0.14-2.0*smarg]);
 set(sp.rawExc.axH,'tag','rawExc');
 % - peth
-sp.peth.axH=subplot('position',[la4  1.5*smarg  1-la4-smarg  0.25-1.5*smarg]);
+sp.peth.axH=subplot('position',[la4  2.0*smarg  1-la4-smarg  0.25-2.0*smarg]);
 set(sp.peth.axH,'tag','peth');
 
 burstdetguifunc(H0,[],{'init','openOptionsDialog'},'sp',sp);

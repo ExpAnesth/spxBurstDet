@@ -11,6 +11,7 @@ The code makes use of in-house formats for time information, namely 'time stamp 
 * reads time stamp lists in *.mat files as produced by threshdetgui (see threshDet repository)
 * user-defined specification of all critical parameters defining bursts
 * display of raster plots and detected bursts
+* optional, interactive display of underlying raw data excerpt for each individual burst
 * display of inter-spike-interval histogram
 * display of peri-burst time interval histogram
 * saving to disk of detected bursts as etsl
